@@ -48,8 +48,8 @@ class ST {
 
   void UpdateParams() {
     if (l != r) {
-      data = (ls == nullptr ? Data() : ls->data(ql, qr)) +
-             (rs == nullptr ? Data() : rs->data(ql, qr));
+      data = (ls == nullptr ? Data() : ls->data) +
+             (rs == nullptr ? Data() : rs->data);
     }
   }
 
