@@ -7,12 +7,7 @@ using Ll = long long;
 template <typename Data>
 class ST {
  public:
-  ST(int l, int r) : l(l), r(r) {
-    if (l != r) {
-      ls = new ST(l, (l + r) / 2);
-      rs = new ST((l + r) / 2 + 1, r);
-    }
-  }
+  ST(int l, int r) : l(l), r(r) {}
 
   ~ST() {
     delete ls;
@@ -27,8 +22,14 @@ class ST {
       return;
     }
     if (pos <= (l + r) / 2) {
+      if (ls == nullptr) {
+        ls = new ST(l, (l + r) / 2);
+      }
       ls->SetPos(value, pos);
     } else {
+      if (rs == nullptr) {
+        rs = new ST((l + r) / 2 + 1, r);
+      }
       rs->SetPos(value, pos);
     }
     UpdateParams();
@@ -41,12 +42,14 @@ class ST {
     if (ql <= l && r <= qr) {
       return data;
     }
-    return ls->GetSegData(ql, qr) + rs->GetSegData(ql, qr);
+    return (ls == nullptr ? Data() : ls->GetSegData(ql, qr)) +
+           (rs == nullptr ? Data() : rs->GetSegData(ql, qr));
   }
 
   void UpdateParams() {
     if (l != r) {
-      data = ls->data + rs->data;
+      data = (ls == nullptr ? Data() : ls->data(ql, qr)) +
+             (rs == nullptr ? Data() : rs->data(ql, qr));
     }
   }
 
