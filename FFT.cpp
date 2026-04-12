@@ -73,7 +73,7 @@ class ModInt {
 Ll ReverseBit(Ll num, Ll log_n) {
   Ll nw = 0;
   for (Ll i = 0; i < log_n; ++i) {
-    if ((num & (1LL << i)) != 0) { // Используем 1LL
+    if ((num & (1LL << i)) != 0) {
       nw |= (1LL << (log_n - i - 1));
     }
   }
