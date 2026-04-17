@@ -2,6 +2,8 @@
 #include <vector>
 #include <algorithm>
 
+// Calculates size of maximum prefix of str and str[i...n] where n is the end
+
 std::vector<int> ZFunction(const std::string& str) {
   int n = str.size();
   std::vector<int> z(n, 0);
