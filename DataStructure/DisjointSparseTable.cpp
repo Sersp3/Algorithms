@@ -10,7 +10,13 @@
 template <typename T>
 class DisjointSparseTable {
  public:
+  DisjointSparseTable() {}
+
   DisjointSparseTable(std::vector<T> arr) {
+    Init(arr);
+  }
+
+  void Init(std::vector<T> arr) {
     int n = arr.size();
     int log_n = 0;
     while (n > (1 << log_n)) ++log_n;
@@ -21,18 +27,18 @@ class DisjointSparseTable {
     FillHighestBit(n);
 
     table.assign(log_n, std::vector<T>(n));
-    table[0].assign(arr);
-    
-    for (int layer = 1; layer < log_n; ++layer) {
-      for (int offset = 0; offset < n; offset += (1 << (log_n + 1))) {
-        table[layer][offset + (1 << layer) - 1] = arr[offset + (1 << layer) - 1];
-        for (int i = (1 << layer) - 2; i >= 0; --i) {
-          table[layer][i] = table[layer][i + 1] + arr[i];
-        }
-        table[layer][offset + (1 << layer)] = arr[offset + (1 << layer)];
-        for (int i = (1 << layer) + 1; i < (1 << (layer + 1)); ++i) {
-          table[layer][i] = table[layer][i - 1] + arr[i];
-        }
+
+    for (int level = 0; level < log_n; ++level) {
+      int half = (1 << level);
+      int block = (1 << (level + 1));
+      for (int mid = half; mid < n; mid += block) {
+        table[level][mid - 1] = arr[mid - 1];
+        for (int i = mid - 2; i >= mid - half; --i) 
+          table[level][i] = arr[i] + table[level][i + 1];
+
+        table[level][mid] = arr[mid];
+        for (int i = mid + 1; i < std::min(n, mid + half); ++i)
+          table[level][i] = table[level][i - 1] + arr[i];
       }
     }
   }
@@ -40,9 +46,8 @@ class DisjointSparseTable {
   T SegmentQuery(int l, int r) {
     int index = highest_bit[l ^ r];
     if (index == 0) {
-      return table[0][l];
+      return table[index][l];
     }
-    --index;
     return table[index][l] + table[index][r];
   }
  private:

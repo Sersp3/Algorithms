@@ -64,8 +64,35 @@ std::vector<int> SuffixArray(std::string s) {
   return order;
 }
 
+std::vector<int> LCP(std::string s) {
+  s.push_back('$');
+  int n = s.size();
+  std::vector<int> suff_arr = SuffixArray(s);
 
+  std::vector<int> rev_suff_arr(n, 0);
+  for (int i = 0; i < n; ++i) {
+    rev_suff_arr[suff_arr[i]] = i;
+  }
+
+  std::vector<int> neighbour_lcp(n - 1, 0);
+  int curr = 0;
+  for (int index = 0; index < n; ++index) {
+    int arr_pos = rev_suff_arr[index];
+    if (arr_pos == 0) {
+      continue;
+    }
+    int prev_index = suff_arr[arr_pos - 1];
+
+    while (s[index + curr] == s[prev_index + curr]) ++curr;
+
+    neighbour_lcp[arr_pos - 1] = curr;
+    curr = std::max(curr - 1, 0);
+  }
+  return neighbour_lcp;
+}
 
 int main() {
+  std::string s;
+  std::cin >> s;
   return 0;
 }
