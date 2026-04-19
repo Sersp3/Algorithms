@@ -45,7 +45,7 @@ class DisjointSparseTable {
 
   T SegmentQuery(int l, int r) {
     int index = highest_bit[l ^ r];
-    if (index == 0) {
+    if (l == r) {
       return table[index][l];
     }
     return table[index][l] + table[index][r];
