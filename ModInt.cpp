@@ -12,50 +12,71 @@ class ModInt {
   }
 
   ModInt() : value(0) {}
+  
+  ModInt& operator+=(const ModInt& other) {
+    value += other.value;
+    ToMod();
+    return *this;
+  }
 
   ModInt operator+(const ModInt& other) const {
-    return ModInt(value + other.value);
+    ModInt tmp = *this;
+    return tmp += other;
   }
 
   ModInt operator-() const {
     return ModInt(-value);
   }
 
+  ModInt& operator-=(const ModInt& other) {
+    value - other.value;
+    ToMod();
+    return *this;
+  }
+
   ModInt operator-(const ModInt& other) const {
-    return ModInt(value - other.value);
+    ModInt tmp = *this;
+    return tmp -= other;
+  }
+
+  ModInt& operator*=(const ModInt& other) {
+    value *= other.value;
+    ToMod();
+    return *this;
   }
 
   ModInt operator*(const ModInt& other) const {
-    return ModInt(value * other.value);
+    ModInt tmp = *this;
+    return tmp *= other;
   }
 
   Ll GetValue() const {
     return value;
   }
 
+  ModInt& operator/=(const ModInt& other) {
+    return this->operator*=(Reverse(other.value));
+  }
+
   ModInt operator/(const ModInt& other) const {
-    return (*this) * Reverse(other);
+    ModInt tmp = *this;
+    return tmp /= other;
+  }
+
+  static ModInt Power(ModInt num, Ll pow) {
+    ModInt res = 1;
+    while (pow != 0) {
+      if (pow % 2 == 1) res *= num;
+      num *= num;
+      pow /= 2;
+    }
+    return res;
   }
  private:
   Ll value;
 
   static ModInt Reverse(ModInt num) {
     return Power(num, cMod - 2);
-  }
-
-  static ModInt Power(ModInt num, Ll pow) {
-    if (pow == 0) {
-      return ModInt(1);
-    }
-    if (pow == 1) {
-      return ModInt(num);
-    }
-    ModInt temp = Power(num, pow / 2);
-    temp = temp * temp;
-    if (pow % 2 == 1) {
-      temp = temp * num;
-    }
-    return temp;
   }
 
   void ToMod() {
