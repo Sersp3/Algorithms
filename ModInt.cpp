@@ -29,7 +29,7 @@ class ModInt {
   }
 
   ModInt& operator-=(const ModInt& other) {
-    value - other.value;
+    value -= other.value;
     ToMod();
     return *this;
   }
