@@ -2,14 +2,13 @@
 #include <vector>
 #include <algorithm>
 
-using Ll = long long;
-static Ll cMod = 998244353;
+#define int long long
+static const int cMod = 998244353;
+using namespace std;
 
 class ModInt {
  public:
-  ModInt(Ll val) : value(val) {
-    ToMod();
-  }
+  ModInt(int val) : value(val) { ToMod(); }
 
   ModInt() : value(0) {}
   
@@ -50,7 +49,7 @@ class ModInt {
     return tmp *= other;
   }
 
-  Ll GetValue() const {
+  int GetValue() const {
     return value;
   }
 
@@ -63,7 +62,7 @@ class ModInt {
     return tmp /= other;
   }
 
-  static ModInt Power(ModInt num, Ll pow) {
+  static ModInt Power(ModInt num, int pow) {
     ModInt res = 1;
     while (pow != 0) {
       if (pow % 2 == 1) res *= num;
@@ -73,7 +72,7 @@ class ModInt {
     return res;
   }
  private:
-  Ll value;
+  int value;
 
   static ModInt Reverse(ModInt num) {
     return Power(num, cMod - 2);
@@ -87,3 +86,34 @@ class ModInt {
   }
 };
 
+ostream& operator<<(std::ostream& output, const ModInt& val) {
+  output << val.GetValue();
+  return output;
+};
+ 
+istream& operator>>(std::istream& input, ModInt& val) {
+  int temp;
+  std::cin >> temp;
+  val = temp;
+  return input;
+}
+
+vector<ModInt> Factorials;
+vector<ModInt> ReverseFactorials;
+
+void Prepare(int n) {
+  Factorials.assign(n, 1);
+  ReverseFactorials.assign(n + 1, 1);
+  for (int i = 2; i <= n; ++i) {
+    Factorials[i] = Factorials[i - 1] * i;
+    ReverseFactorials[i] = ModInt(1) / Factorials[i];
+  }
+}
+
+ModInt Combinations(int n, int k) {
+  return Factorials[n] * ReverseFactorials[k] * ReverseFactorials[n - k];
+}
+
+ModInt CombinationsWithRepeat(int n, int k) {
+  return Combinations(n + k - 1, k);
+}

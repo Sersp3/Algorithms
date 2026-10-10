@@ -1,171 +1,220 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
 
-using Ll = long long;
-static Ll cMod = 998244353;
+#define _USE_MATH_DEFINES
+#include <math.h>
 
-class ModInt {
- public:
-  ModInt(Ll val) : value(val) {
-    ToMod();
-  }
+using namespace std;
+#define int long long
 
-  ModInt() : value(0) {}
+struct Complex {
+    double re;
+    double im;
 
-  ModInt operator+(const ModInt& other) const {
-    return ModInt(value + other.value);
-  }
+    Complex(double re, double im) : re(re), im(im) {}
 
-  ModInt operator-() const {
-    return ModInt(-value);
-  }
+    Complex(double re) : Complex(re, 0) {}
 
-  ModInt operator-(const ModInt& other) const {
-    return ModInt(value - other.value);
-  }
+    Complex() : Complex(0, 0) {}
 
-  ModInt operator*(const ModInt& other) const {
-    return ModInt(value * other.value);
-  }
-
-  Ll GetValue() const {
-    return value;
-  }
-
-  ModInt operator/(const ModInt& other) const {
-    return (*this) * Reverse(other);
-  }
-
-  static ModInt GetWn(Ll n) {
-    return Power(ModInt(3), (cMod - 1) / n);
-  }
- private:
-  Ll value;
-
-  static ModInt Reverse(ModInt num) {
-    return Power(num, cMod - 2);
-  }
-
-  static ModInt Power(ModInt num, Ll pow) {
-    if (pow == 0) {
-      return ModInt(1);
+    Complex& operator+=(const Complex& other) {
+        re += other.re;
+        im += other.im;
+        return *this;
     }
-    if (pow == 1) {
-      return ModInt(num);
+    
+    Complex operator+(const Complex& other) const {
+        Complex tmp = *this;
+        return tmp += other;
     }
-    ModInt temp = Power(num, pow / 2);
-    temp = temp * temp;
-    if (pow % 2 == 1) {
-      temp = temp * num;
-    }
-    return temp;
-  }
 
-  void ToMod() {
-    value %= cMod;
-    if (value < 0) {
-      value += cMod;
+    Complex& operator-=(const Complex& other) {
+        re -= other.re;
+        im -= other.im;
+        return *this;
     }
-  }
+
+    Complex operator-(const Complex& other) const {
+        Complex tmp = *this;
+        return tmp -= other;
+    }
+
+    Complex& operator*=(const Complex& other) {
+        // (a + bi) * (c + di) == ac - bd + (ad + bc)i
+        double fs = re * other.re - im * other.im;
+        double sc = re * other.im + im * other.re;
+        re = fs;
+        im = sc;
+        return *this;
+    }
+
+    Complex operator*(const Complex& other) const {
+        Complex tmp = *this;
+        return tmp *= other;
+    }
+
+    Complex operator-() const {
+        return *this * Complex(-1, 0);
+    }
+
+    Complex& operator/=(const Complex& other) {
+        *this *= other.Conjugate();
+        re /= other.Length();
+        im /= other.Length();
+        return *this;
+    }
+
+    Complex operator/(const Complex& other) const {
+        Complex tmp = *this;
+        return tmp /= other;
+    }
+
+    Complex Conjugate() const {
+        return Complex(re, -im);
+    }
+
+    double Length() const {
+        return im * im + re * re;
+    }
+
+    static Complex SqrtN(int i, int n) {
+        double angle = 2 * M_PI * double(i) / double(n);
+        return Complex(cos(angle), sin(angle));
+    }
 };
 
-Ll ReverseBit(Ll num, Ll log_n) {
-  Ll nw = 0;
-  for (Ll i = 0; i < log_n; ++i) {
-    if ((num & (1LL << i)) != 0) {
-      nw |= (1LL << (log_n - i - 1));
+template <typename Data>
+void InverseOrder(vector<Data>& arr) {
+    int n = arr.size();
+    int log = 1;
+    while ((1 << log) != n) ++log;
+    int rev = 0;
+
+    for (int i = 1; i < n; ++i) {
+        int bit = n >> 1;
+
+        while (rev & bit) {
+            rev ^= bit;
+            bit >>= 1;
+        }
+
+        rev ^= bit;
+
+        if (i < rev) swap(arr[i], arr[rev]);
     }
-  }
-  return nw;
 }
 
-template <typename F>
-void InplaceFFT(std::vector<F>& arr, bool invert) {
-  Ll n = arr.size();
-  Ll log_n = 0;
-  while (n != (1 << log_n)) ++log_n;
-  
-  for (Ll i = 0; i < n; ++i) {
-    Ll temp = ReverseBit(i, log_n);
-    if (i > temp) {
-      std::swap(arr[i], arr[temp]);
-    }
-  }
+// size must be power of two
+// inverse=false : coefficients -> values
+// inverse=true : values -> coefficients
+template <typename Data>
+vector<Data>& InplaceFFT(vector<Data>& arr, bool inverse = false) {
+    int n = arr.size();
+    int log = 1;
+    while ((1 << log) != n) ++log;
 
-  for (Ll len = 2; len <= n; len *= 2) {
-    F wn = F::GetWn(len);
-    if (invert) {
-      wn = F(1) / wn;
-    }
-    for (Ll a = 0; a < n; a += len) {
-      F curr = F(1);
-      for (Ll i = 0; i < len / 2; ++i) {
-        F fs = arr[a + i];
-        F sc = arr[a + i + len / 2] * curr;
-        arr[a + i] = fs + sc;
-        arr[a + i + len / 2] = fs - sc;
-        curr = curr * wn;
-      }
-    }
-  }
+    if (inverse) {
+        for (int i = log; i >= 1; --i) {
+            int sz = (1 << i);
+            Data step = Data::SqrtN(sz - 1, sz);
+            for (int s = 0; s < n; s += sz) {
+                Data w = Data(1);
+                for (int j = 0; j < sz / 2; ++j) {
 
-  if (invert) {
-    for (Ll i = 0; i < n; ++i) {
-      arr[i] = arr[i] / F(n);
+                    Data x = arr[s + j];
+                    Data y = arr[s + j + sz / 2];
+
+                    arr[s + j] = x + y;
+                    arr[s + j + sz / 2] = (x - y) * w;
+                    w *= step;
+                }
+            }
+        }
+
+        for (int i = 0; i < n; ++i) arr[i] /= n;
+        InverseOrder(arr);
+    } else {
+        InverseOrder(arr);
+        for (int i = 1; i <= log; ++i) {
+            int sz = (1 << i);
+            Data step = Data::SqrtN(1, sz);
+            for (int s = 0; s < n; s += sz) {
+                Data w = Data(1);
+                for (int j = 0; j < sz / 2; ++j) {
+                    
+                    Data x = arr[s + j];
+                    Data tmp = arr[s + j + sz / 2] * w;
+
+                    arr[s + j] = x + tmp;
+                    arr[s + j + sz / 2] = x - tmp;
+                    w *= step;
+                }
+            }
+        }
     }
-  }
+    return arr;
 }
 
-template<typename F>
-void Multiply(const std::vector<F>& a, const std::vector<F>& b, std::vector<F>& res) {
-  int target_len = (int)a.size() + (int)b.size() - 1;
-  
-  Ll n = 1;
-  while (n < target_len) n <<= 1;
+// Magic idea FFT(A + iB) = FFT(A) + iFFT(B)
+template <typename Data>
+vector<Data> Multiply(const vector<Data>& fs, const vector<Data>& sc) {
+    int n = fs.size();
+    int m = sc.size();
 
-  if (n > (1 << 23)) {
-    throw std::runtime_error("FFT size too large for modulus");
-  }
+    int size = 1;
+    while (size < n + m - 1) size <<= 1;
+    vector<Data> a(size);
 
-  std::vector<F> fa(n, F(0)), fb(n, F(0));
-  for (size_t i = 0; i < a.size(); ++i) fa[i] = a[i];
-  for (size_t i = 0; i < b.size(); ++i) fb[i] = b[i];
+    for (int i = 0; i < n; ++i)
+        a[i].re = fs[i].re;
 
-  InplaceFFT(fa, false);
-  InplaceFFT(fb, false);
-  for (Ll i = 0; i < n; ++i) {
-    fa[i] = fa[i] * fb[i];
-  }
-  InplaceFFT(fa, true);
+    for (int i = 0; i < m; ++i)
+        a[i].im = sc[i].re;
 
-  res.assign(fa.begin(), fa.begin() + target_len);
+    InplaceFFT(a, false);
+
+    vector<Data> res(size);
+
+    for (int k = 0; k < size; ++k) {
+        int other = (size - k) & (size - 1);
+
+        Data x = a[k];
+        Data y = a[other].Conjugate();
+
+        Data d = (x + y) * (x - y);
+
+        res[k] = Data(d.im / 4.0, -d.re / 4.0);
+    }
+
+    // Один обратный FFT
+    InplaceFFT(res, true);
+
+    return res;
 }
 
-int main() {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
+signed main() {
+    int n;
+    cin >> n;
+    vector<Complex> fs(n);
+    for (auto& x : fs) {
+        int y;
+        cin >> y;
+        x = Complex(y);
+    }
 
-  int n, m;
-  std::cin >> n;
-  std::vector<ModInt> P(n);
-  for (int i = 0; i < n; ++i) {
-    Ll x; std::cin >> x;
-    P[i] = x;
-  }
+    int m;
+    cin >> m;
+    vector<Complex> sc(m);
+    for (auto& x : sc) {
+        int y;
+        cin >> y;
+        x = Complex(y);
+    }
 
-  std::cin >> m;
-  std::vector<ModInt> Q(m);
-  for (int i = 0; i < m; ++i) {
-    Ll x; std::cin >> x;
-    Q[i] = x;
-  }
-
-  std::vector<ModInt> res;
-  Multiply(P, Q, res);
-
-  for (int i = 0; i < n + m - 1; ++i) {
-    std::cout << res[i].GetValue() << " ";
-  }
-  return 0;
+    auto res = Multiply(fs, sc);
+    for (int i = 0; i < n + m - 1; ++i) {
+        int tmp = round(res[i].re);
+        cout << tmp << ' ';
+    }
+    return 0;
 }
