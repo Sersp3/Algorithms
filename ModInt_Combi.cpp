@@ -102,7 +102,7 @@ vector<ModInt> Factorials;
 vector<ModInt> ReverseFactorials;
 
 void Prepare(int n) {
-  Factorials.assign(n, 1);
+  Factorials.assign(n + 1, 1);
   ReverseFactorials.assign(n + 1, 1);
   for (int i = 2; i <= n; ++i) {
     Factorials[i] = Factorials[i - 1] * i;
